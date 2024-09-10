@@ -33,7 +33,7 @@ Router.HandleFunc("/validate/payment",mpesaexpresscont.Validate_Payment).Methods
 
 var ActualHandler = corsHandler.Handler(Router)
 fmt.Printf("Server Listening for Requests at port %s",port)
-log.Fatal(http.ListenAndServe(":"+port,ActualHandler))
+log.Fatal(http.ListenAndServe(":9900",ActualHandler))
 
 
 
