@@ -38,7 +38,7 @@ User.PresetTodefault()
 result := db.Connection.Create(&User)
 if result.RowsAffected !=0{
 var mapString = make(map[string]string, 0)
-mapString["message"] ="User Saved Successfully"
+mapString["message"] ="User Saved Successfully"   
 mapString["rowsAffected"] = "1"
 var databytes,_ = json.Marshal(mapString)
 res.Write(databytes)
@@ -104,4 +104,22 @@ messageResp["message"] ="Internal Server Error"
 databytes,_ := json.Marshal(messageResp)
 res.Write([]byte(databytes))    
 }
+}
+
+
+
+
+
+
+
+func FecthallAdmins(res http.ResponseWriter,req *http.Request){
+var Admins [] users.Users
+
+ db.Connection.Find(&Admins)
+json.NewEncoder(res).Encode(map[string]interface{}{
+"message":"Admins Fetched",
+"data":Admins,
+})
+
+
 }
