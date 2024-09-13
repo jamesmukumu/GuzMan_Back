@@ -19,7 +19,9 @@ Pin string `json:"Pin"`
 User_Name string `json:"user_name"` 
 }
 
-
+type New_Admin_Name struct{
+Admin_Name string `json:"admin_name"`
+}
 
     
 func RegisterUser(res http.ResponseWriter,req *http.Request) {
@@ -136,5 +138,69 @@ json.NewEncoder(res).Encode(map[string]interface{}{
 "data":admin,
 "rowsaffected":result.RowsAffected,
 })
+
+}
+
+
+
+func Adjust_Admins_Name(res http.ResponseWriter,req *http.Request){
+var message = make(map[string]string,0)
+var Admin users.Users
+var adminLoad  New_Admin_Name
+var admin_number string = req.URL.Query().Get("admin_number")
+err := json.NewDecoder(req.Body).Decode(&adminLoad)
+if err != nil{
+log.Fatal(err.Error())
+return
+}
+
+match := db.Connection.Table("users").Where("id = ?",admin_number).Find(&Admin)
+if match.RowsAffected == 1 && Admin.Users_Name == adminLoad.Admin_Name {
+message["message"] ="Admin Name cannot be same as old name"
+message["content"] = "Try using a different admin name"
+databytes,_ := json.Marshal(message)
+res.WriteHeader(202)
+res.Write(databytes)     
+return
+}else if match.RowsAffected == 0 && match.Error != nil {
+message["message"] = "This Admin Does not exist"
+databytes, _ :=  json.Marshal(message)
+res.WriteHeader(202)
+res.Write(databytes)
+return
+}
+
+result := db.Connection.Table("users").Where("id = ?",admin_number).Update("users_name",adminLoad.Admin_Name)
+if result.RowsAffected == 1  {
+message["message"] = "Admin Name Accepted Successfully"
+databytes,_ := json.Marshal(message)
+res.WriteHeader(200)     
+res.Write(databytes)
+return
+}
+     
+}
+
+
+
+func Delete_Admin(res http.ResponseWriter,req *http.Request){
+var Admin users.Users
+var msg  = make(map[string]string,0)
+var admins_number string = req.URL.Query().Get("admin_number")
+result := db.Connection.Table("users").Where("id = ?",admins_number).Delete(&Admin)
+
+if result.RowsAffected == 1 && result.Error == nil{
+msg["message"] ="Admin Has been Deleted successfully"
+msg["rowsAffected"] ="1"
+databytes,_ := json.Marshal(msg)
+res.WriteHeader(202)
+res.Write(databytes)
+}else if result.RowsAffected == 0 && result.Error == nil{
+msg["message"] = "Admin Does not exist"
+msg["rowsAffected"] = "0"
+databytes,_ := json.Marshal(msg)   
+res.WriteHeader(202)
+res.Write(databytes)
+}   
 
 }
