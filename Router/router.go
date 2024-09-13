@@ -32,7 +32,7 @@ Router.HandleFunc("/validate/pin",usercontrollers.Grant_Permission).Methods("POS
 Router.HandleFunc("/initiate/payment",mpesaexpresscont.Initiate_Mpesa_Express).Methods("POST")
 Router.HandleFunc("/validate/payment",mpesaexpresscont.Validate_Payment).Methods("POST")
 Router.HandleFunc("/fetch/all/admins",usercontrollers.FecthallAdmins).Methods("GET")
-
+Router.HandleFunc("/admin/fetch/id",usercontrollers.Fetch_Admin_Primary_Key).Methods("GET")
 
 
 var ActualHandler = corsHandler.Handler(Router)

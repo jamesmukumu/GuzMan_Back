@@ -20,6 +20,8 @@ User_Name string `json:"user_name"`
 }
 
 
+
+    
 func RegisterUser(res http.ResponseWriter,req *http.Request) {
 var User users.Users
 err := json.NewDecoder(req.Body).Decode(&User)
@@ -114,12 +116,25 @@ res.Write([]byte(databytes))
 
 func FecthallAdmins(res http.ResponseWriter,req *http.Request){
 var Admins [] users.Users
-
- db.Connection.Find(&Admins)
+db.Connection.Find(&Admins)
 json.NewEncoder(res).Encode(map[string]interface{}{
 "message":"Admins Fetched",
 "data":Admins,
 })
+}
 
+
+func Fetch_Admin_Primary_Key(res http.ResponseWriter,req *http.Request){
+
+var admin users.Users
+
+id_number := req.URL.Query().Get("id_number")
+
+result := db.Connection.Find(&admin,id_number)
+json.NewEncoder(res).Encode(map[string]interface{}{
+"message":"Admin Fetched",
+"data":admin,
+"rowsaffected":result.RowsAffected,
+})
 
 }
