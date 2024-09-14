@@ -31,10 +31,10 @@ Router.HandleFunc("/create/new/user",adminhelper.Prevalidate_Admin_Creation(user
 Router.HandleFunc("/validate/pin",usercontrollers.Grant_Permission).Methods("POST")
 Router.HandleFunc("/initiate/payment",mpesaexpresscont.Initiate_Mpesa_Express).Methods("POST")
 Router.HandleFunc("/validate/payment",mpesaexpresscont.Validate_Payment).Methods("POST")
-Router.HandleFunc("/fetch/all/admins",usercontrollers.FecthallAdmins).Methods("GET")
-Router.HandleFunc("/admin/fetch/id",usercontrollers.Fetch_Admin_Primary_Key).Methods("GET")
-Router.HandleFunc("/update/admins/name",usercontrollers.Adjust_Admins_Name).Methods("PUT")
-Router.HandleFunc("/delete/admin",usercontrollers.Delete_Admin).Methods("DELETE")
+Router.HandleFunc("/fetch/all/admins",adminhelper.Prevalidate_Admin_Creation(usercontrollers.FecthallAdmins)).Methods("GET")
+Router.HandleFunc("/admin/fetch/id",adminhelper.Prevalidate_Admin_Creation(usercontrollers.Fetch_Admin_Primary_Key)).Methods("GET")
+Router.HandleFunc("/update/admins/name",adminhelper.Prevalidate_Admin_Creation(usercontrollers.Adjust_Admins_Name)).Methods("PUT")
+Router.HandleFunc("/delete/admin",adminhelper.Prevalidate_Admin_Creation(usercontrollers.Delete_Admin)).Methods("DELETE")
    
 
 var ActualHandler = corsHandler.Handler(Router)

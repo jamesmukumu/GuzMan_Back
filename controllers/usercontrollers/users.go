@@ -169,6 +169,7 @@ res.WriteHeader(202)
 res.Write(databytes)
 return
 }
+//
 
 result := db.Connection.Table("users").Where("id = ?",admin_number).Update("users_name",adminLoad.Admin_Name)
 if result.RowsAffected == 1  {
