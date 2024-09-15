@@ -2,6 +2,7 @@ package usercontrollers
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -80,9 +81,11 @@ response,_ := json.Marshal(jsonResp)
 res.Write([]byte(response))
 return
 }
+fmt.Print(user.Pin)
 err1 := bcrypt.CompareHashAndPassword([]byte(user.Pin),[]byte(pin.Pin))
 if err1 != nil{
-message := map[string]string{
+
+message := map[string]string{    
 "message":"Pin mismatch",
 }
 databytes,_ := json.Marshal(message)
@@ -280,19 +283,23 @@ return
 
 
 var Password Password
-json.NewDecoder(req.Body).Decode(&Password)
-
-db.Connection.Table("users").Where("users_name = ?",Admin.Users_Name).Find(&Admin)
-errCompare := bcrypt.CompareHashAndPassword([]byte(Admin.Pin),[]byte(Password.Pass))
-if errCompare !=  nil {
-msg["message"] ="Old Password and New Password Match."
-msg["content"] ="Try another passowrd,different from the old one"
-databytes, _ := json.Marshal(msg)
-res.Write(databytes)
+err3 := json.NewDecoder(req.Body).Decode(&Password)
+if err3 != nil {
+log.Fatal(err3.Error())
 return
 }
 
-encryptedPassword, _ := bcrypt.GenerateFromPassword([]byte(Password.Pass),13)
+db.Connection.Table("users").Where("users_name = ?",Admin.Users_Name).Find(&Admin)
+errCompare := bcrypt.CompareHashAndPassword([]byte(Admin.Pin),[]byte(Password.Pass))
+if errCompare ==  nil {
+msg["message"] ="Old Password and New Password Match."
+msg["content"] ="Try another passowrd,different from the old one"
+databytes, _ := json.Marshal(msg)
+res.Write(databytes)   
+return
+}       
+
+encryptedPassword, _ := bcrypt.GenerateFromPassword([]byte(Password.Pass),11)
 result := db.Connection.Table("users").Where("users_name = ?",Admin.Users_Name).Update("pin",string(encryptedPassword))
 if result.RowsAffected == 1 && result.Error == nil {
 msg["message"] = "Password Changes Successfully"
