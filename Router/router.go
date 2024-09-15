@@ -25,6 +25,7 @@ var corsOptions cors.Options = cors.Options{
 AllowedOrigins:[]string{"*"},
 AllowedMethods: []string{"POST","GET","DELETE","PATCH","PUT"},
 AllowedHeaders: []string{"*"},    
+
 }
 corsHandler := cors.New(corsOptions)  
 Router.HandleFunc("/create/new/user",usercontrollers.RegisterUser).Methods("POST")
