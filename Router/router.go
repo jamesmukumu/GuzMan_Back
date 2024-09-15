@@ -27,7 +27,7 @@ AllowedMethods: []string{"POST","GET","DELETE","PATCH","PUT"},
 AllowedHeaders: []string{"*"},    
 }
 corsHandler := cors.New(corsOptions)  
-Router.HandleFunc("/create/new/user",adminhelper.Prevalidate_Admin_Creation(usercontrollers.RegisterUser)).Methods("POST")
+Router.HandleFunc("/create/new/user",usercontrollers.RegisterUser).Methods("POST")
 Router.HandleFunc("/validate/pin",usercontrollers.Grant_Permission).Methods("POST")
 Router.HandleFunc("/initiate/payment",mpesaexpresscont.Initiate_Mpesa_Express).Methods("POST")
 Router.HandleFunc("/validate/payment",mpesaexpresscont.Validate_Payment).Methods("POST")
@@ -36,11 +36,13 @@ Router.HandleFunc("/admin/fetch/id",adminhelper.Prevalidate_Admin_Creation(userc
 Router.HandleFunc("/update/admins/name",adminhelper.Prevalidate_Admin_Creation(usercontrollers.Adjust_Admins_Name)).Methods("PUT")
 Router.HandleFunc("/delete/admin",adminhelper.Prevalidate_Admin_Creation(usercontrollers.Delete_Admin)).Methods("DELETE")
    
+Router.HandleFunc("/initiate/reset/password",usercontrollers.Generate_Reset_Token).Methods("POST")
+Router.HandleFunc("/update/new/password",usercontrollers.Reset_Password).Methods("PUT")
 
 var ActualHandler = corsHandler.Handler(Router)
 fmt.Printf("Server Listening for Requests at port %s",port)
 log.Fatal(http.ListenAndServe(":9900",ActualHandler))
-
+      
    
 
 

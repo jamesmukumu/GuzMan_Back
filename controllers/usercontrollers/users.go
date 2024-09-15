@@ -3,6 +3,7 @@ package usercontrollers
 import (
 	"encoding/json"
 	"os"
+	"strings"
 	"time"
 
 	"log"
@@ -21,6 +22,9 @@ User_Name string `json:"user_name"`
 
 type New_Admin_Name struct{
 Admin_Name string `json:"admin_name"`
+}
+type Password struct{
+Pass string `json:"password"`
 }
 
     
@@ -203,5 +207,104 @@ databytes,_ := json.Marshal(msg)
 res.WriteHeader(202)
 res.Write(databytes)
 }   
+
+}
+
+
+
+
+func Generate_Reset_Token(res http.ResponseWriter,req *http.Request){
+env.Load()
+msg := make(map[string]string, 0)
+var resetSecret string = os.Getenv("resetSecret")
+var Admin users.Users
+Admin_Name := req.URL.Query().Get("username")
+result := db.Connection.Table("users").Where("users_name = ?",Admin_Name).Find(&Admin)
+if result.RowsAffected == 1 && result.Error == nil {
+databytes,_ := json.Marshal(Admin)
+Token := jwt.NewWithClaims(jwt.SigningMethodHS256,jwt.MapClaims{
+"admin":string(databytes),
+"exp":time.Now().Add(time.Minute * 5).Unix(),
+})
+
+Token_string,_ := Token.SignedString([]byte(resetSecret))
+msg["message"] ="Admin Found"
+msg["reset_token"] = Token_string
+data,_ := json.Marshal(msg)
+res.Write(data)
+return
+}else if result.RowsAffected == 0 &&  result.Error == nil {
+msg["message"] ="Admin Not Found"
+databytes,_ := json.Marshal(msg)
+res.Write(databytes)
+return
+  }else{
+json.NewEncoder(res).Encode(map[string]string{
+"message":"Internal server Error",
+})
+}
+}
+
+
+
+func Reset_Password(res http.ResponseWriter,req *http.Request){
+env.Load()
+var tokenString string = os.Getenv("resetSecret")
+var msg = make(map[string]string,0)
+var token = req.Header.Get("Authorization")
+if token == "" || len(strings.Split(token,"")) < 1{
+res.WriteHeader(401)
+msg["message"] = "Unauthorized"
+databytes,_ := json.Marshal(msg)
+res.Write(databytes)
+return
+}
+var actualToken = strings.Split(token," ")[1]
+tok, err := jwt.Parse(actualToken,func(tok *jwt.Token) (interface{}, error) {
+return []byte(tokenString),nil
+})
+if err!=nil && strings.Contains(err.Error(),"token has invalid claims: token is expired"){
+msg["message"] = "Unauthorized"
+databytes,_ := json.Marshal(msg)
+res.Write(databytes)
+return
+}
+var Admin users.Users
+var tokenMap = tok.Claims.(jwt.MapClaims)
+var admin = tokenMap["admin"].(string)
+err1 := json.Unmarshal([]byte(admin),&Admin)
+if err1 != nil {
+log.Fatal(err1.Error())
+return
+}
+
+
+var Password Password
+json.NewDecoder(req.Body).Decode(&Password)
+
+db.Connection.Table("users").Where("users_name = ?",Admin.Users_Name).Find(&Admin)
+errCompare := bcrypt.CompareHashAndPassword([]byte(Admin.Pin),[]byte(Password.Pass))
+if errCompare !=  nil {
+msg["message"] ="Old Password and New Password Match."
+msg["content"] ="Try another passowrd,different from the old one"
+databytes, _ := json.Marshal(msg)
+res.Write(databytes)
+return
+}
+
+encryptedPassword, _ := bcrypt.GenerateFromPassword([]byte(Password.Pass),13)
+result := db.Connection.Table("users").Where("users_name = ?",Admin.Users_Name).Update("pin",string(encryptedPassword))
+if result.RowsAffected == 1 && result.Error == nil {
+msg["message"] = "Password Changes Successfully"
+databytes, _ := json.Marshal(msg)
+res.Write(databytes)
+return
+}else if !tok.Valid {
+msg["message"] = "Unauthorized"
+databytes,_ := json.Marshal(msg)
+res.Write(databytes)
+return
+}
+
 
 }
