@@ -17,7 +17,7 @@ var Connection *gorm.DB
 func Db_connection(){
 var Users users.Users
 var Customer_Collections mpesaexpress.Customer_Details
-
+var favs users.Favourites_Customers
 var Mpesa_references mpesaexpress.Confirmation_Payment_Mpesa
 env.Load()
 var connection_Uri string = os.Getenv("connectionstringdb")
@@ -28,7 +28,7 @@ return
 }
 Connection = Connection_Db
 
-Connection.AutoMigrate(&Users,&Customer_Collections,&Mpesa_references)
+Connection.AutoMigrate(&Users,&Customer_Collections,&Mpesa_references,&favs)
 
 
 fmt.Println("Connected to DB Successfully")

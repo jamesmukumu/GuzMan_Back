@@ -95,7 +95,7 @@ return
 var UserInfo,_ = json.Marshal(user)
 var token = jwt.NewWithClaims(jwt.SigningMethodHS256,jwt.MapClaims{
 "user":string(UserInfo),
-"exp":time.Now().Add(time.Hour * 1).UnixNano(),
+"exp":time.Now().Add(time.Hour * 1).Unix(),
 })
 var actualToken,errToken = token.SignedString([]byte(secretJwt))
 if errToken != nil{
@@ -311,6 +311,52 @@ msg["message"] = "Unauthorized"
 databytes,_ := json.Marshal(msg)
 res.Write(databytes)
 return
+}
+
+
+}
+
+    
+
+func Create_Favorites(res http.ResponseWriter,req *http.Request){
+env.Load()
+msg := make(map[string]string,0)
+var secretAdmin = os.Getenv("jwtSecret")
+
+var Admin users.Users
+var fav users.Favourites_Customers
+var token = req.Header.Get("Authorization")
+
+if token ==""{
+msg["message"] = "Unauthorized"
+databytes,_ := json.Marshal(msg)
+res.Write(databytes)
+return
+}
+var actualToken = strings.Split(token," ")[1]  
+
+tok,err := jwt.Parse(actualToken,func(t *jwt.Token) (interface{}, error) {
+return []byte(secretAdmin),nil
+})
+
+if err != nil {
+log.Fatal(err.Error())
+}
+
+
+var tokenMap = tok.Claims.(jwt.MapClaims)
+var Admin_User = tokenMap["user"].(string)
+json.Unmarshal([]byte(Admin_User),&Admin)
+
+
+json.NewDecoder(req.Body).Decode(&fav)
+fav.Created_By = Admin.Users_Name
+result := db.Connection.Table("favourites_customers").Create(&fav)
+if result.RowsAffected == 1 && result.Error == nil {
+msg["message"] ="Customer Saved To Favourites"
+databytes,_ := json.Marshal(msg)
+res.WriteHeader(200)
+res.Write(databytes)
 }
 
 
