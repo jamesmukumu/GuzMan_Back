@@ -40,6 +40,12 @@ Router.HandleFunc("/create/new/fav/client",usercontrollers.Create_Favorites).Met
 Router.HandleFunc("/initiate/reset/password",usercontrollers.Generate_Reset_Token).Methods("POST")
 Router.HandleFunc("/update/new/password",usercontrollers.Reset_Password).Methods("PUT")
 Router.HandleFunc("/fetch/favourites",usercontrollers.Fetch_Favourites).Methods("GET")
+Router.HandleFunc("/delete/favourite/customer",usercontrollers.Delete_Favs).Methods("DELETE")
+
+
+
+
+
 var ActualHandler = corsHandler.Handler(Router)   
 fmt.Printf("Server Listening for Requests at port %s",port)
 log.Fatal(http.ListenAndServe(":9900",ActualHandler))

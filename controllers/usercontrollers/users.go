@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/jamesmukumu/guzman/work/models/users"
 	env "github.com/joho/godotenv"
 	bcrypt "golang.org/x/crypto/bcrypt"
-	
 )
 type Pin struct{
 Pin string `json:"Pin"`
@@ -414,6 +414,52 @@ json.NewEncoder(res).Encode(map[string]interface{}{
 "data":Favs,
 })
 }
+}
 
 
+
+
+func Delete_Favs(res http.ResponseWriter,req *http.Request){
+env.Load()
+var secret string = os.Getenv("jwtSecret")
+var token string = req.Header.Get("Authorization")
+var resp = make(map[string]interface{},0)
+var customersID string = req.URL.Query().Get("customer")
+var actualToken =  strings.Split(token," ")[1]
+if actualToken == "" || len(strings.Split(token," ")) < 0{
+resp["message"] ="Unaruthorized"
+databytes,_ := json.Marshal(resp)
+res.WriteHeader(401)  
+res.Write(databytes)
+return
+}
+
+tok,err := jwt.Parse(actualToken,func(t *jwt.Token) (interface{}, error) {
+return []byte(secret),nil
+})
+if err != nil && strings.Contains(err.Error(),"token is invalid"){
+resp["message"] ="Unaruthorized"
+databytes,_ := json.Marshal(resp)
+res.WriteHeader(401)
+res.Write(databytes)
+return
+}
+customerIIintform,_ := strconv.Atoi(customersID)
+var payload = tok.Claims.(jwt.MapClaims)["user"].(string)
+var Admin users.Users
+var Fav users.Favourites_Customers
+json.Unmarshal([]byte(payload),&Admin)
+result := db.Connection.Table("favourites_customers").Where("id  = ?",customerIIintform).Where("created_by = ?",Admin.Users_Name).Delete(&Fav)
+if result.RowsAffected != 0 && result.Error == nil {
+resp["message"] = "Customer has been deleted"
+databytes, _ := json.Marshal(resp)
+res.WriteHeader(200)
+res.Write(databytes)
+return
+}else if result.RowsAffected == 0 && result.Error == nil{
+resp["message"] = "Error in deleting"
+databytes, _ := json.Marshal(resp)
+res.WriteHeader(200)
+res.Write(databytes)
+}
 }
