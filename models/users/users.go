@@ -18,10 +18,10 @@ Favourites Favourites_Customers `gorm:"foreignKey:Created_By;references:Users_Na
 
 type Favourites_Customers struct{
 gorm.Model
-Phone_Number string `json:"phone_number" gorm:"not null"`
+Phone_Number string `json:"phone_number" gorm:"not null;unique"`
 Name string `json:"name" gorm:"not null"`
 Created_By string `gorm:"not null"`
-
+   
 }
 
 

@@ -15,6 +15,7 @@ import (
 	"github.com/jamesmukumu/guzman/work/models/users"
 	env "github.com/joho/godotenv"
 	bcrypt "golang.org/x/crypto/bcrypt"
+	
 )
 type Pin struct{
 Pin string `json:"Pin"`
@@ -339,8 +340,12 @@ tok,err := jwt.Parse(actualToken,func(t *jwt.Token) (interface{}, error) {
 return []byte(secretAdmin),nil
 })
 
-if err != nil {
-log.Fatal(err.Error())
+if err != nil && strings.Contains(err.Error(),"token has invalid claims: token is expired") {
+msg["message"] = "Unauthorized"
+databytes,_ := json.Marshal(msg)
+res.WriteHeader(401)  
+res.Write(databytes)
+return
 }
 
 
@@ -357,6 +362,57 @@ msg["message"] ="Customer Saved To Favourites"
 databytes,_ := json.Marshal(msg)
 res.WriteHeader(200)
 res.Write(databytes)
+}else if result.RowsAffected == 0{
+msg["message"] = "This Customer already exists"
+databytes, _ := json.Marshal(msg)
+res.WriteHeader(202)
+res.Write(databytes)   
+}}
+
+
+
+
+
+
+
+func Fetch_Favourites(res http.ResponseWriter,req *http.Request){
+env.Load()
+msg := make(map[string]string, 0)
+var secretToken string = os.Getenv("jwtSecret")
+var token  = req.Header.Get("Authorization")
+if token == ""{
+msg["message"] ="Unauthorized" 
+databytes,_ := json.Marshal(msg)
+res.WriteHeader(401)
+res.Write(databytes)
+return  
+}
+
+var actualTok = strings.Split(token," ")[1]
+tok,err := jwt.Parse(actualTok,func(t *jwt.Token) (interface{}, error) {
+return []byte(secretToken),nil
+})
+
+if err != nil && strings.Contains(err.Error(),"token has invalid claims: token is expired") {
+res.WriteHeader(401)
+json.NewEncoder(res).Encode(map[string]string{
+"message":"Token Is expired",
+})
+return
+}
+
+var user string  = tok.Claims.(jwt.MapClaims)["user"].(string)
+var Admin users.Users
+json.Unmarshal([]byte(user),&Admin)
+
+var Favs []users.Favourites_Customers
+
+result := db.Connection.Table("favourites_customers").Where("created_by",Admin.Users_Name).Find(&Favs)
+if result.RowsAffected != 1 && result.Error == nil{
+json.NewEncoder(res).Encode(map[string]interface{}{   
+"message":"Favourites Fetched",
+"data":Favs,
+})
 }
 
 

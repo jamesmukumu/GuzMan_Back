@@ -39,8 +39,8 @@ Router.HandleFunc("/delete/admin",adminhelper.Prevalidate_Admin_Creation(usercon
 Router.HandleFunc("/create/new/fav/client",usercontrollers.Create_Favorites).Methods("POST")
 Router.HandleFunc("/initiate/reset/password",usercontrollers.Generate_Reset_Token).Methods("POST")
 Router.HandleFunc("/update/new/password",usercontrollers.Reset_Password).Methods("PUT")
-
-var ActualHandler = corsHandler.Handler(Router)
+Router.HandleFunc("/fetch/favourites",usercontrollers.Fetch_Favourites).Methods("GET")
+var ActualHandler = corsHandler.Handler(Router)   
 fmt.Printf("Server Listening for Requests at port %s",port)
 log.Fatal(http.ListenAndServe(":9900",ActualHandler))
       
