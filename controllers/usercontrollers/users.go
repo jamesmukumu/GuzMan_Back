@@ -408,7 +408,7 @@ json.Unmarshal([]byte(user),&Admin)
 var Favs []users.Favourites_Customers
 
 result := db.Connection.Table("favourites_customers").Where("created_by",Admin.Users_Name).Find(&Favs)
-if result.RowsAffected != 1 && result.Error == nil{
+if result.RowsAffected != 0 && result.Error == nil{
 json.NewEncoder(res).Encode(map[string]interface{}{   
 "message":"Favourites Fetched",
 "data":Favs,
