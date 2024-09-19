@@ -41,10 +41,10 @@ Router.HandleFunc("/initiate/reset/password",usercontrollers.Generate_Reset_Toke
 Router.HandleFunc("/update/new/password",usercontrollers.Reset_Password).Methods("PUT")
 Router.HandleFunc("/fetch/favourites",usercontrollers.Fetch_Favourites).Methods("GET")
 Router.HandleFunc("/delete/favourite/customer",usercontrollers.Delete_Favs).Methods("DELETE")
+Router.HandleFunc("/fetch/todays/payments",mpesaexpresscont.Fetch_todays_payments).Methods("GET")
 
 
-
-
+     
 
 var ActualHandler = corsHandler.Handler(Router)   
 fmt.Printf("Server Listening for Requests at port %s",port)

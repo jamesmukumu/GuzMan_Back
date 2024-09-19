@@ -26,7 +26,7 @@ ResultDesc string `gorm:"not null"`
 TransactionStatus string `gorm:"not null"`
 TransactionCode string `gorm:"not null;"`
 TransactionID string `gorm:"not null;unique"`
-TransactionAmount string `gorm:"not null"`
+TransactionAmount string `gorm:"not null"`   
 TransactionReceipt string `gorm:"not_null"`
 TransactionDate string `gorm:"not null"`
 TransactionReference string `gorm:"not null"`

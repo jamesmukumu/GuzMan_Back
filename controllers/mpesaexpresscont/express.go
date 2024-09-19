@@ -3,6 +3,7 @@ package mpesaexpresscont
 import (
 	"bytes"
 	"crypto/rand"
+	"strconv"
 
 	"fmt"
 
@@ -282,10 +283,40 @@ msg["message"] ="Internal Server Error"
 databytes,_ := json.Marshal(msg)
 res.Write(databytes)
 
-}   
+}}   
 
 
-   
-      
 
-}   
+
+
+
+
+
+func Fetch_todays_payments(res http.ResponseWriter,req *http.Request){
+var Pays []mpesaexpress.Customer_Details
+var msg = make(map[string]interface{}, 0)
+now := time.Now()
+startDay := time.Date(now.Year(),now.Month(),now.Day(),0,0,0,0,now.Location())
+endDate := time.Date(now.Year(),now.Month(),now.Day(),23,59,59, 999999999,now.Location())
+
+result := db.Connection.Table("customer_details").Where("created_at BETWEEN ? AND ?",startDay,endDate).Preload("Confirmation_Payment_Mpesa").Find(&Pays)
+if result.RowsAffected > 0 && result.Error == nil {
+var totalSalestoday int
+for _,pay := range Pays{
+tt,_ := strconv.Atoi(pay.Amount)
+totalSalestoday += tt
+
+}
+msg["message"] = "Todays Payments fetched"  
+msg["data"] = Pays  
+msg["total_Sales_today"] =  totalSalestoday       
+databytes,_ := json.Marshal(msg)
+res.WriteHeader(202)
+res.Write(databytes)
+return
+}else if result.RowsAffected == 0 && result.Error == nil {
+msg["message"] = "You have not collected any payments today"
+databytes,_ := json.Marshal(msg)   
+res.Write(databytes)
+}
+}
