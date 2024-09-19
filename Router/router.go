@@ -42,7 +42,7 @@ Router.HandleFunc("/update/new/password",usercontrollers.Reset_Password).Methods
 Router.HandleFunc("/fetch/favourites",usercontrollers.Fetch_Favourites).Methods("GET")
 Router.HandleFunc("/delete/favourite/customer",usercontrollers.Delete_Favs).Methods("DELETE")
 Router.HandleFunc("/fetch/todays/payments",mpesaexpresscont.Fetch_todays_payments).Methods("GET")
-
+Router.HandleFunc("/fetch/payments/on/filter",mpesaexpresscont.Filter_Time_Range_Payments).Methods("POST")
 
      
 

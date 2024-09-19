@@ -23,6 +23,7 @@ import (
 
 	"github.com/jamesmukumu/guzman/work/db"
 	mpesaexpress "github.com/jamesmukumu/guzman/work/models/mpesa_express"
+
 	env "github.com/joho/godotenv"
 )
 
@@ -30,6 +31,12 @@ type Request_Express struct{
 Customers_Phone_Number string `json:"customer_no"`
 Amount string `json:"amount"`
 }
+
+type Range_Date struct {
+Start_Date string `json:"start"`
+End_Date string `json:"end"`
+}
+
 
 type Ums_Load struct{
 Api_Key string `json:"api_key"`
@@ -319,4 +326,50 @@ msg["message"] = "You have not collected any payments today"
 databytes,_ := json.Marshal(msg)   
 res.Write(databytes)
 }
+}
+
+
+
+func Filter_Time_Range_Payments(res http.ResponseWriter,req *http.Request){
+var Day_Range Range_Date
+var pays []mpesaexpress.Customer_Details
+msg := make(map[string]interface{},0)
+err := json.NewDecoder(req.Body).Decode(&Day_Range)
+if err != nil {
+panic(err.Error())
+}
+Start_Date,errStart := time.Parse(time.RFC3339,Day_Range.Start_Date)
+if errStart != nil {
+panic(errStart.Error())
+}
+EndDate,errEnd := time.Parse(time.RFC3339,Day_Range.End_Date)
+if errEnd != nil {   
+panic(errEnd.Error())
+}
+start := time.Date(Start_Date.Year(),Start_Date.Month(),Start_Date.Day(),23,59,59, 999999999,Start_Date.Location())
+end :=  time.Date(EndDate.Year(),EndDate.Month(),EndDate.Day(),23,59,59, 999999999,EndDate.Location())
+result := db.Connection.Table("customer_details").Where("created_at  BETWEEN ? AND ?",start,end).Preload("Confirmation_Payment_Mpesa").Find(&pays)
+if result.RowsAffected > 0 && result.Error == nil {
+var totals int
+
+for _,Pays := range pays{
+amounts,_ := strconv.Atoi(Pays.Amount)
+totals += amounts
+}
+
+msg["message"] = "Results fetched for these filter"
+msg["data"] = pays
+msg["amount"] = totals
+databytes,_ := json.Marshal(msg)
+res.WriteHeader(202)
+res.Write(databytes)
+return
+}else if result.RowsAffected == 0 && result.Error == nil {
+msg["message"] ="No Results matching this filter"
+databytes,_ := json.Marshal(msg)
+res.WriteHeader(202)
+res.Write(databytes)
+}
+
+
 }
