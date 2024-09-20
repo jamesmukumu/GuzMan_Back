@@ -370,6 +370,47 @@ databytes,_ := json.Marshal(msg)
 res.WriteHeader(202)
 res.Write(databytes)
 }
+}
 
 
+func Fetch_Payments_Analysis(res http.ResponseWriter,req *http.Request){
+var Result []map[string]interface{}
+  
+var pays []mpesaexpress.Customer_Details
+var months   = []string{"January","February","March","April","May","June","July","August","September","October","November","December"}
+now := time.Now()  
+
+for i := 0; i < len(months); i++ {
+    
+    referenceDate := time.Date(now.Year(), time.Month(i+1), 1, 0, 0, 0, 0, now.Location())
+
+    nextDate := referenceDate.AddDate(0, 1, 0)
+    endDate := nextDate.AddDate(0, 0, -1).Add(23 * time.Hour).Add(59 * time.Minute).Add(59 * time.Second).Add(999999999 * time.Nanosecond)
+    
+    startDate := referenceDate
+    
+  
+    resul := db.Connection.Table("customer_details").Where("created_at BETWEEN ? AND ?", startDate, endDate).Preload("Confirmation_Payment_Mpesa").Find(&pays)
+    var totals int
+
+    if resul.Error == nil {
+     for _,p := range pays {
+	tt,_ := strconv.Atoi(p.Amount)
+	totals +=  tt
+	 }
+	 days := int(nextDate.Sub(referenceDate).Hours()/24)
+        var mapResp = make(map[string]interface{}, 0)
+        mapResp["month"] = months[i]
+        mapResp["amount"] = totals
+		mapResp["averagePaymentMonthly"] =  totals/days   
+        Result = append(Result, mapResp)
+    } else if resul.Error != nil {
+        panic(resul.Error.Error())
+        break
+    }
+}
+
+databytes,_ := json.Marshal(Result)
+res.WriteHeader(202)
+res.Write(databytes)
 }
