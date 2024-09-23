@@ -414,3 +414,74 @@ databytes,_ := json.Marshal(Result)
 res.WriteHeader(202)
 res.Write(databytes)
 }
+
+
+
+
+func Fetch_Weekly_Analysis(res http.ResponseWriter,req *http.Request){
+var pays []mpesaexpress.Customer_Details
+var msg = make(map[string]interface{},0)
+now := time.Now()
+startDate := time.Date(now.Year(),time.Month(now.Month()),now.Day()-7,23,59,59,9999999,now.Location())
+endDate := time.Date(now.Year(),time.Month(now.Month()),now.Day(),23,59,59,9999999,now.Location())
+result := db.Connection.Table("customer_details").Where("created_at BETWEEN ? AND ?",startDate,endDate).Preload("Confirmation_Payment_Mpesa").Find(&pays)
+if result.RowsAffected != 0 && result.Error == nil {
+var totals int
+for _,pay := range pays {
+num,_ := strconv.Atoi(pay.Amount)
+totals += num
+}
+msg["message"] ="Weekly payments fetched successfully"
+msg["data"] = pays
+msg["totals"] = totals
+databytes,_ := json.Marshal(msg)
+res.WriteHeader(200)
+res.Write(databytes)
+return
+}else if result.RowsAffected == 0 && result.Error == nil{
+msg["message"] = "You have not collected any payments"
+databytes,_ := json.Marshal(msg)
+res.WriteHeader(200)
+res.Write(databytes)
+}
+}
+
+
+
+func Fetch_montly_analysis(res http.ResponseWriter,req *http.Request){
+var pays []mpesaexpress.Customer_Details
+var msg = make(map[string]interface{},0)
+now := time.Now()
+initialRference := time.Date(now.Year(),now.Month(),1,1,1,1,1,now.Location())
+nextMonth := now.AddDate(0,1,0)
+diff := nextMonth.Sub(initialRference).Hours()/24
+
+startDate := time.Date(now.Year(),now.Month(),1,1,1,1,9999999,now.Location())
+endDate  := time.Date(now.Year(),now.Month(),int(diff),23,59,59,9999999,now.Location())
+
+result := db.Connection.Table("customer_details").Where("created_at BETWEEN ? AND ?",startDate,endDate).Preload("Confirmation_Payment_Mpesa").Find(&pays)
+if result.RowsAffected != 0 && result.Error == nil {
+var totals int
+for i:=0;i < len(pays);i++{
+amt,_ := strconv.Atoi(pays[i].Amount)
+totals += amt
+
+}
+
+
+msg["message"] = "Monthly Analysis payments fetched"
+msg["data"] = pays
+msg["totals"] = totals
+databytes,_ := json.Marshal(msg)
+res.WriteHeader(202)
+res.Write(databytes)
+return
+}else if result.RowsAffected == 0 && result.Error == nil{
+msg["message"] ="You have no monthly payments"
+databytes,_ := json.Marshal(msg)
+res.WriteHeader(202)
+res.Write(databytes)
+}
+
+
+}

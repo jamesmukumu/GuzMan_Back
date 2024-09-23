@@ -44,13 +44,15 @@ Router.HandleFunc("/delete/favourite/customer",usercontrollers.Delete_Favs).Meth
 Router.HandleFunc("/fetch/todays/payments",mpesaexpresscont.Fetch_todays_payments).Methods("GET")
 Router.HandleFunc("/fetch/payments/on/filter",mpesaexpresscont.Filter_Time_Range_Payments).Methods("POST")
 Router.HandleFunc("/payment/analysis",mpesaexpresscont.Fetch_Payments_Analysis).Methods("GET")
-     
+Router.HandleFunc("/fetch/weekly/payments",mpesaexpresscont.Fetch_Weekly_Analysis).Methods("GET")     
+Router.HandleFunc("/fetch/monthly/analysis",mpesaexpresscont.Fetch_montly_analysis).Methods("GET")
 
 var ActualHandler = corsHandler.Handler(Router)   
 fmt.Printf("Server Listening for Requests at port %s",port)
 log.Fatal(http.ListenAndServe(":9900",ActualHandler))  
       
    
+
 
 
 }
