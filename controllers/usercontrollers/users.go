@@ -81,7 +81,7 @@ jsonResp := map[string]string{
 response,_ := json.Marshal(jsonResp)
 res.Write([]byte(response))
 return
-}
+}   
 fmt.Print(user.Pin)
 err1 := bcrypt.CompareHashAndPassword([]byte(user.Pin),[]byte(pin.Pin))
 if err1 != nil{
@@ -107,6 +107,7 @@ return
 message := make(map[string]string, 0)
 message["message"] = "Pin Accepted"
 message["Token"] = actualToken
+message["username"] = user.Users_Name
 databytes,_ := json.Marshal(message)
 res.Write([]byte(databytes))
 }

@@ -422,14 +422,14 @@ func Fetch_Weekly_Analysis(res http.ResponseWriter,req *http.Request){
 var pays []mpesaexpress.Customer_Details
 var msg = make(map[string]interface{},0)
 now := time.Now()
-startDate := time.Date(now.Year(),time.Month(now.Month()),now.Day()-7,23,59,59,9999999,now.Location())
-endDate := time.Date(now.Year(),time.Month(now.Month()),now.Day(),23,59,59,9999999,now.Location())
+startDate :=  now.AddDate(0,0,-int(now.Weekday()))
+endDate := startDate.AddDate(0,0,7)
 result := db.Connection.Table("customer_details").Where("created_at BETWEEN ? AND ?",startDate,endDate).Preload("Confirmation_Payment_Mpesa").Find(&pays)
 if result.RowsAffected != 0 && result.Error == nil {
 var totals int
 for _,pay := range pays {
 num,_ := strconv.Atoi(pay.Amount)
-totals += num
+totals += num   
 }
 msg["message"] ="Weekly payments fetched successfully"
 msg["data"] = pays
